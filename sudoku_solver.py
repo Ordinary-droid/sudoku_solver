@@ -1,82 +1,107 @@
-def print_board(board):
-    """Prints the Sudoku board in a readable format."""
-    for row in board:
-        print(" ".join(str(num) if num != 0 else '.' for num in row))
+import tkinter as tk
+from tkinter import messagebox
 
 
-def is_valid(board, row, col, num):
-    """Checks if placing num at board[row][col] is valid according to Sudoku rules."""
-    # Check the row
-    for x in range(9):
-        if board[row][x] == num:
-            return False
+class SudokuSolver:
+    def __init__(self, master):
+        self.master = master
+        self.master.title("Sudoku Solver")
+        self.grid = [[0 for _ in range(9)] for _ in range(9)]
+        self.entries = [[None for _ in range(9)] for _ in range(9)]
 
-    # Check the column
-    for x in range(9):
-        if board[x][col] == num:
-            return False
+        self.create_widgets()
 
-    # Check the 3x3 grid
-    start_row = 3 * (row // 3)
-    start_col = 3 * (col // 3)
-    for i in range(3):
-        for j in range(3):
-            if board[i + start_row][j + start_col] == num:
+    def create_widgets(self):
+        # Create the grid of entry boxes
+        for i in range(9):
+            for j in range(9):
+                entry = tk.Entry(self.master, width=2, font=('Arial', 24), justify='center')
+                entry.grid(row=i, column=j, padx=5, pady=5)
+                self.entries[i][j] = entry
+
+        # Create Solve button
+        solve_button = tk.Button(self.master, text="Solve", command=self.solve_sudoku)
+        solve_button.grid(row=10, column=0, columnspan=3, pady=10)
+
+        # Create Clear button
+        clear_button = tk.Button(self.master, text="Clear", command=self.clear_board)
+        clear_button.grid(row=10, column=3, columnspan=3, pady=10)
+
+    def solve_sudoku(self):
+        # Get values from the entry boxes and fill the grid
+        for i in range(9):
+            for j in range(9):
+                value = self.entries[i][j].get()
+                if value.isdigit() and 1 <= int(value) <= 9:
+                    self.grid[i][j] = int(value)
+                else:
+                    self.grid[i][j] = 0  # Empty cell
+
+        if self.solve():
+            self.update_board()
+            messagebox.showinfo("Success", "Sudoku solved successfully!")
+        else:
+            messagebox.showerror("Error", "No solution exists.")
+
+    def solve(self):
+        empty_cell = self.find_empty_location()
+
+        if not empty_cell:
+            return True  # Solved
+
+        row, col = empty_cell
+
+        for num in range(1, 10):
+            if self.is_valid(row, col, num):
+                self.grid[row][col] = num
+
+                if self.solve():
+                    return True
+
+                self.grid[row][col] = 0  # Backtrack
+
+        return False
+
+    def find_empty_location(self):
+        for i in range(9):
+            for j in range(9):
+                if self.grid[i][j] == 0:
+                    return (i, j)
+        return None
+
+    def is_valid(self, row, col, num):
+        # Check row and column
+        for x in range(9):
+            if self.grid[row][x] == num or self.grid[x][col] == num:
                 return False
 
-    return True
+        # Check 3x3 box
+        start_row = row - row % 3
+        start_col = col - col % 3
+        for i in range(3):
+            for j in range(3):
+                if self.grid[i + start_row][j + start_col] == num:
+                    return False
 
-
-def find_empty_location(board):
-    """Finds an empty cell in the Sudoku board. Returns (row, col) or None if full."""
-    for i in range(9):
-        for j in range(9):
-            if board[i][j] == 0:  # 0 indicates an empty cell
-                return (i, j)
-    return None
-
-
-def solve_sudoku(board):
-    """Solves the Sudoku board using backtracking."""
-    empty_cell = find_empty_location(board)
-
-    # If no empty cell is found, the puzzle is solved
-    if not empty_cell:
         return True
 
-    row, col = empty_cell
+    def update_board(self):
+        """Update the GUI with the solved Sudoku board."""
+        for i in range(9):
+            for j in range(9):
+                self.entries[i][j].delete(0, tk.END)  # Clear previous value
+                if self.grid[i][j] != 0:
+                    self.entries[i][j].insert(tk.END, str(self.grid[i][j]))
 
-    # Try numbers from 1 to 9
-    for num in range(1, 10):
-        if is_valid(board, row, col, num):
-            board[row][col] = num  # Place the number
-
-            # Recursively attempt to solve the rest of the board
-            if solve_sudoku(board):
-                return True
-
-            # If placing num didn't lead to a solution, reset and backtrack
-            board[row][col] = 0
-
-    return False  # Trigger backtracking
+    def clear_board(self):
+        """Clear the Sudoku board."""
+        for i in range(9):
+            for j in range(9):
+                self.entries[i][j].delete(0, tk.END)
+                self.grid[i][j] = 0
 
 
-# Example Sudoku puzzle (0 represents empty cells)
-sudoku_board = [
-    [5, 3, 0, 0, 7, 0, 0, 0, 0],
-    [6, 0, 0, 1, 9, 5, 0, 0, 0],
-    [0, 9, 8, 0, 0, 0, 0, 6, 0],
-    [8, 0, 0, 0, 6, 0, 0, 0, 3],
-    [4, 0, 0, 8, 0, 3, 0, 0, 1],
-    [7, 0, 0, 0, 2, 0, 0, 0, 6],
-    [0, 6, 0, 0, 0, 0, 2, 8, 0],
-    [0, 0, 0, 4, 1, 9, 0, 0, 5],
-    [0, 0, 0, 0, 8, 0, 0, 7, 9]
-]
-
-if solve_sudoku(sudoku_board):
-    print("Sudoku solved successfully!")
-else:
-    print("No solution exists.")
-
-print_board(sudoku_board)
+if __name__ == "__main__":
+    root = tk.Tk()
+    app = SudokuSolver(root)
+    root.mainloop()
