@@ -6,26 +6,31 @@ class SudokuSolver:
     def __init__(self, master):
         self.master = master
         self.master.title("Sudoku Solver")
+        self.master.config(bg="lightgrey")
         self.grid = [[0 for _ in range(9)] for _ in range(9)]
         self.entries = [[None for _ in range(9)] for _ in range(9)]
 
         self.create_widgets()
 
     def create_widgets(self):
-        # Create the grid of entry boxes
+        # Create the grid of entry boxes with a thicker border around each 3x3 box
         for i in range(9):
             for j in range(9):
-                entry = tk.Entry(self.master, width=2, font=('Arial', 24), justify='center')
-                entry.grid(row=i, column=j, padx=5, pady=5)
+                entry = tk.Entry(self.master, width=2, font=(
+                    'Arial', 18), justify='center', borderwidth=2, relief="solid")
+                entry.grid(row=i, column=j, padx=(1, 1 if (j + 1) % 3 != 0 else 5),
+                           pady=(1, 1 if (i + 1) % 3 != 0 else 5))
                 self.entries[i][j] = entry
 
         # Create Solve button
-        solve_button = tk.Button(self.master, text="Solve", command=self.solve_sudoku)
-        solve_button.grid(row=10, column=0, columnspan=3, pady=10)
+        solve_button = tk.Button(self.master, text="Solve", command=self.solve_sudoku, font=(
+            'Arial', 14), bg="lightblue", fg="black", relief="raised", borderwidth=2)
+        solve_button.grid(row=10, column=1, columnspan=3, pady=10)
 
         # Create Clear button
-        clear_button = tk.Button(self.master, text="Clear", command=self.clear_board)
-        clear_button.grid(row=10, column=3, columnspan=3, pady=10)
+        clear_button = tk.Button(self.master, text="Clear", command=self.clear_board, font=(
+            'Arial', 14), bg="lightcoral", fg="black", relief="raised", borderwidth=2)
+        clear_button.grid(row=10, column=5, columnspan=3, pady=10)
 
     def solve_sudoku(self):
         # Get values from the entry boxes and fill the grid
@@ -92,12 +97,15 @@ class SudokuSolver:
                 self.entries[i][j].delete(0, tk.END)  # Clear previous value
                 if self.grid[i][j] != 0:
                     self.entries[i][j].insert(tk.END, str(self.grid[i][j]))
+                    # Display solution in blue color
+                    self.entries[i][j].config(fg="blue")
 
     def clear_board(self):
         """Clear the Sudoku board."""
         for i in range(9):
             for j in range(9):
                 self.entries[i][j].delete(0, tk.END)
+                self.entries[i][j].config(fg="black")  # Reset to default color
                 self.grid[i][j] = 0
 
 
