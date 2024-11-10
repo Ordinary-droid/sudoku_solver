@@ -1,5 +1,6 @@
 import tkinter as tk
 from tkinter import messagebox
+import random
 
 
 class SudokuSolver:
@@ -31,6 +32,11 @@ class SudokuSolver:
         clear_button = tk.Button(self.master, text="Clear", command=self.clear_board, font=(
             'Arial', 14), bg="lightcoral", fg="black", relief="raised", borderwidth=2)
         clear_button.grid(row=10, column=5, columnspan=3, pady=10)
+
+        # Create Hint button
+        hint_button = tk.Button(self.master, text="Hint", command=self.give_hint, font=(
+            'Arial', 14), bg="lightgreen", fg="black", relief="raised", borderwidth=2)
+        hint_button.grid(row=11, column=1, columnspan=7, pady=10)
 
     def solve_sudoku(self):
         # Get values from the entry boxes and fill the grid
@@ -107,6 +113,33 @@ class SudokuSolver:
                 self.entries[i][j].delete(0, tk.END)
                 self.entries[i][j].config(fg="black")  # Reset to default color
                 self.grid[i][j] = 0
+
+    def give_hint(self):
+        """Provide a hint by filling one empty cell with a correct number."""
+        # Save the current grid state
+        for i in range(9):
+            for j in range(9):
+                value = self.entries[i][j].get()
+                if value.isdigit() and 1 <= int(value) <= 9:
+                    self.grid[i][j] = int(value)
+                else:
+                    self.grid[i][j] = 0  # Empty cell
+
+        # Use solve() to get a solution
+        temp_grid = [row[:] for row in self.grid]
+        if self.solve():
+            empty_cells = [(i, j) for i in range(9)
+                           for j in range(9) if self.entries[i][j].get() == '']
+            if empty_cells:
+                i, j = random.choice(empty_cells)  # Pick a random empty cell
+                hint_value = self.grid[i][j]
+                self.entries[i][j].insert(0, str(hint_value))
+                self.entries[i][j].config(fg="green")  # Hint in green color
+
+            # Restore the original grid state
+            self.grid = temp_grid
+        else:
+            messagebox.showerror("Error", "No solution exists.")
 
 
 if __name__ == "__main__":
