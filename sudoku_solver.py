@@ -4,14 +4,18 @@ import random
 
 
 class SudokuSolver:
-    def __init__(self, master):
+    def __init__(self, master, generate_random=False):
         self.master = master
         self.master.title("Sudoku Solver")
         self.master.config(bg="lightgrey")
         self.grid = [[0 for _ in range(9)] for _ in range(9)]
         self.entries = [[None for _ in range(9)] for _ in range(9)]
+        self.generate_random = generate_random  # Track if random puzzle is chosen
 
         self.create_widgets()
+
+        if generate_random:
+            self.generate_random_sudoku()
 
     def create_widgets(self):
         # Create the grid of entry boxes with a thicker border around each 3x3 box
@@ -33,20 +37,37 @@ class SudokuSolver:
             'Arial', 14), bg="lightcoral", fg="black", relief="raised", borderwidth=2)
         clear_button.grid(row=10, column=5, columnspan=3, pady=10)
 
-        # Create Hint button
-        hint_button = tk.Button(self.master, text="Hint", command=self.give_hint, font=(
-            'Arial', 14), bg="lightgreen", fg="black", relief="raised", borderwidth=2)
-        hint_button.grid(row=11, column=1, columnspan=7, pady=10)
+        # Conditionally add the Hint button only if the puzzle is randomly generated
+        if self.generate_random:
+            hint_button = tk.Button(self.master, text="Hint", command=self.give_hint, font=(
+                'Arial', 14), bg="lightgreen", fg="black", relief="raised", borderwidth=2)
+            hint_button.grid(row=11, column=1, columnspan=7, pady=10)
+
+    def generate_random_sudoku(self):
+        """Generates a random Sudoku puzzle."""
+        sample_puzzle = [
+            [5, 3, 0, 0, 7, 0, 0, 0, 0],
+            [6, 0, 0, 1, 9, 5, 0, 0, 0],
+            [0, 9, 8, 0, 0, 0, 0, 6, 0],
+            [8, 0, 0, 0, 6, 0, 0, 0, 3],
+            [4, 0, 0, 8, 0, 3, 0, 0, 1],
+            [7, 0, 0, 0, 2, 0, 0, 0, 6],
+            [0, 6, 0, 0, 0, 0, 2, 8, 0],
+            [0, 0, 0, 4, 1, 9, 0, 0, 5],
+            [0, 0, 0, 0, 8, 0, 0, 7, 9]
+        ]
+        for i in range(9):
+            for j in range(9):
+                if sample_puzzle[i][j] != 0:
+                    self.entries[i][j].insert(0, str(sample_puzzle[i][j]))
+                    self.entries[i][j].config(state="disabled", fg="blue")
 
     def solve_sudoku(self):
-        # Get values from the entry boxes and fill the grid
+        """Extracts values from entries, tries to solve the Sudoku, and updates the board."""
         for i in range(9):
             for j in range(9):
                 value = self.entries[i][j].get()
-                if value.isdigit() and 1 <= int(value) <= 9:
-                    self.grid[i][j] = int(value)
-                else:
-                    self.grid[i][j] = 0  # Empty cell
+                self.grid[i][j] = int(value) if value.isdigit() else 0
 
         if self.solve():
             self.update_board()
@@ -55,6 +76,7 @@ class SudokuSolver:
             messagebox.showerror("Error", "No solution exists.")
 
     def solve(self):
+        """Backtracking algorithm to solve the Sudoku puzzle."""
         empty_cell = self.find_empty_location()
 
         if not empty_cell:
@@ -74,6 +96,7 @@ class SudokuSolver:
         return False
 
     def find_empty_location(self):
+        """Finds an empty cell in the grid."""
         for i in range(9):
             for j in range(9):
                 if self.grid[i][j] == 0:
@@ -81,14 +104,12 @@ class SudokuSolver:
         return None
 
     def is_valid(self, row, col, num):
-        # Check row and column
+        """Checks if a number can be placed in a specific cell."""
         for x in range(9):
             if self.grid[row][x] == num or self.grid[x][col] == num:
                 return False
 
-        # Check 3x3 box
-        start_row = row - row % 3
-        start_col = col - col % 3
+        start_row, start_col = row - row % 3, col - col % 3
         for i in range(3):
             for j in range(3):
                 if self.grid[i + start_row][j + start_col] == num:
@@ -97,52 +118,71 @@ class SudokuSolver:
         return True
 
     def update_board(self):
-        """Update the GUI with the solved Sudoku board."""
-        for i in range(9):
-            for j in range(9):
-                self.entries[i][j].delete(0, tk.END)  # Clear previous value
-                if self.grid[i][j] != 0:
-                    self.entries[i][j].insert(tk.END, str(self.grid[i][j]))
-                    # Display solution in blue color
-                    self.entries[i][j].config(fg="blue")
-
-    def clear_board(self):
-        """Clear the Sudoku board."""
+        """Updates the GUI with the solved Sudoku board."""
         for i in range(9):
             for j in range(9):
                 self.entries[i][j].delete(0, tk.END)
-                self.entries[i][j].config(fg="black")  # Reset to default color
+                self.entries[i][j].insert(tk.END, str(self.grid[i][j]))
+                self.entries[i][j].config(fg="blue")
+
+    def clear_board(self):
+        """Clears the Sudoku board."""
+        for i in range(9):
+            for j in range(9):
+                self.entries[i][j].delete(0, tk.END)
+                self.entries[i][j].config(fg="black")
                 self.grid[i][j] = 0
 
     def give_hint(self):
         """Provide a hint by filling one empty cell with a correct number."""
-        # Save the current grid state
+        # Store the current grid state
         for i in range(9):
             for j in range(9):
                 value = self.entries[i][j].get()
-                if value.isdigit() and 1 <= int(value) <= 9:
-                    self.grid[i][j] = int(value)
-                else:
-                    self.grid[i][j] = 0  # Empty cell
+                self.grid[i][j] = int(value) if value.isdigit() else 0
 
-        # Use solve() to get a solution
+        # Solve the puzzle to get a solution
         temp_grid = [row[:] for row in self.grid]
         if self.solve():
             empty_cells = [(i, j) for i in range(9)
                            for j in range(9) if self.entries[i][j].get() == '']
             if empty_cells:
-                i, j = random.choice(empty_cells)  # Pick a random empty cell
+                i, j = random.choice(empty_cells)
                 hint_value = self.grid[i][j]
                 self.entries[i][j].insert(0, str(hint_value))
-                self.entries[i][j].config(fg="green")  # Hint in green color
+                self.entries[i][j].config(fg="green")
 
-            # Restore the original grid state
+            # Restore the original grid
             self.grid = temp_grid
         else:
             messagebox.showerror("Error", "No solution exists.")
 
 
-if __name__ == "__main__":
+def open_solver(generate_random=False):
     root = tk.Tk()
-    app = SudokuSolver(root)
+    app = SudokuSolver(root, generate_random=generate_random)
     root.mainloop()
+
+
+def main():
+    initial_window = tk.Tk()
+    initial_window.title("Sudoku Solver Options")
+    initial_window.config(bg="lightgrey")
+
+    label = tk.Label(initial_window, text="Choose an option",
+                     font=('Arial', 16), bg="lightgrey")
+    label.pack(pady=20)
+
+    user_input_button = tk.Button(initial_window, text="Input Your Own Puzzle",
+                                  font=('Arial', 14), bg="lightblue", command=lambda: (initial_window.destroy(), open_solver(generate_random=False)))
+    user_input_button.pack(pady=10)
+
+    random_button = tk.Button(initial_window, text="Generate Random Puzzle",
+                              font=('Arial', 14), bg="lightgreen", command=lambda: (initial_window.destroy(), open_solver(generate_random=True)))
+    random_button.pack(pady=10)
+
+    initial_window.mainloop()
+
+
+if __name__ == "__main__":
+    main()
