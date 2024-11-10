@@ -18,30 +18,31 @@ class SudokuSolver:
             self.generate_random_sudoku()
 
     def create_widgets(self):
-        # Create the grid of entry boxes with a thicker border around each 3x3 box
+        # Configure grid weights for responsive design
+        for i in range(9):
+            self.master.grid_rowconfigure(i, weight=1)
+            self.master.grid_columnconfigure(i, weight=1)
+
+        # Create the grid of entry boxes
         for i in range(9):
             for j in range(9):
-                entry = tk.Entry(self.master, width=2, font=(
-                    'Arial', 18), justify='center', borderwidth=2, relief="solid")
-                entry.grid(row=i, column=j, padx=(1, 1 if (j + 1) % 3 != 0 else 5),
+                entry = tk.Entry(self.master, font=('Arial', 18), justify='center', borderwidth=2, relief="solid")
+                entry.grid(row=i, column=j, sticky="nsew", padx=(1, 1 if (j + 1) % 3 != 0 else 5),
                            pady=(1, 1 if (i + 1) % 3 != 0 else 5))
                 self.entries[i][j] = entry
 
         # Create Solve button
-        solve_button = tk.Button(self.master, text="Solve", command=self.solve_sudoku, font=(
-            'Arial', 14), bg="lightblue", fg="black", relief="raised", borderwidth=2)
-        solve_button.grid(row=10, column=1, columnspan=3, pady=10)
+        solve_button = tk.Button(self.master, text="Solve", command=self.solve_sudoku, font=('Arial', 14), bg="lightblue", fg="black", relief="raised", borderwidth=2)
+        solve_button.grid(row=10, column=1, columnspan=3, pady=10, sticky="ew")
 
         # Create Clear button
-        clear_button = tk.Button(self.master, text="Clear", command=self.clear_board, font=(
-            'Arial', 14), bg="lightcoral", fg="black", relief="raised", borderwidth=2)
-        clear_button.grid(row=10, column=5, columnspan=3, pady=10)
+        clear_button = tk.Button(self.master, text="Clear", command=self.clear_board, font=('Arial', 14), bg="lightcoral", fg="black", relief="raised", borderwidth=2)
+        clear_button.grid(row=10, column=5, columnspan=3, pady=10, sticky="ew")
 
         # Conditionally add the Hint button only if the puzzle is randomly generated
         if self.generate_random:
-            hint_button = tk.Button(self.master, text="Hint", command=self.give_hint, font=(
-                'Arial', 14), bg="lightgreen", fg="black", relief="raised", borderwidth=2)
-            hint_button.grid(row=11, column=1, columnspan=7, pady=10)
+            hint_button = tk.Button(self.master, text="Hint", command=self.give_hint, font=('Arial', 14), bg="lightgreen", fg="black", relief="raised", borderwidth=2)
+            hint_button.grid(row=11, column=1, columnspan=7, pady=10, sticky="ew")
 
     def generate_random_sudoku(self):
         """Generates a random Sudoku puzzle."""
@@ -69,11 +70,11 @@ class SudokuSolver:
                 value = self.entries[i][j].get()
                 self.grid[i][j] = int(value) if value.isdigit() else 0
 
-        if self.solve():
-            self.update_board()
-            messagebox.showinfo("Success", "Sudoku solved successfully!")
-        else:
-            messagebox.showerror("Error", "No solution exists.")
+            if self.solve():
+                self.update_board()
+                messagebox.showinfo("Success", "Sudoku solved successfully!")
+            else:
+                messagebox.showerror("Error", "No solution exists.")
 
     def solve(self):
         """Backtracking algorithm to solve the Sudoku puzzle."""
