@@ -161,7 +161,7 @@ class SudokuSolver:
             self.grid = temp_grid
         else:
             messagebox.showerror("Error", "No solution exists.")
-
+    #Back
     def back_to_initial(self):
         """Close current window and return to the initial window."""
         self.master.destroy()
@@ -191,8 +191,8 @@ def main():
                               font=('Arial', 14), bg="lightgreen", command=lambda: (initial_window.destroy(), open_solver(generate_random=True)))
     random_button.pack(pady=10)
 
-    initial_window.mainloop()
 
+    initial_window.mainloop()
 
 if __name__ == "__main__":
     main()
