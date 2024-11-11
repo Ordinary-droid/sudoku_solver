@@ -44,6 +44,10 @@ class SudokuSolver:
             hint_button = tk.Button(self.master, text="Hint", command=self.give_hint, font=('Arial', 14), bg="lightgreen", fg="black", relief="raised", borderwidth=2)
             hint_button.grid(row=11, column=1, columnspan=7, pady=10, sticky="ew")
 
+        # Add Back button
+        back_button = tk.Button(self.master, text="Back", command=self.back_to_initial, font=('Arial', 14), bg="grey", fg="black", relief="raised", borderwidth=2)
+        back_button.grid(row=12, column=1, columnspan=7, pady=10, sticky="ew")
+
     def generate_random_sudoku(self):
         """Generates a random Sudoku puzzle."""
         sample_puzzle = [
@@ -70,11 +74,11 @@ class SudokuSolver:
                 value = self.entries[i][j].get()
                 self.grid[i][j] = int(value) if value.isdigit() else 0
 
-            if self.solve():
-                self.update_board()
-                messagebox.showinfo("Success", "Sudoku solved successfully!")
-            else:
-                messagebox.showerror("Error", "No solution exists.")
+        if self.solve():
+            self.update_board()
+            messagebox.showinfo("Success", "Sudoku solved successfully!")
+        else:
+            messagebox.showerror("Error", "No solution exists.")
 
     def solve(self):
         """Backtracking algorithm to solve the Sudoku puzzle."""
@@ -157,6 +161,11 @@ class SudokuSolver:
             self.grid = temp_grid
         else:
             messagebox.showerror("Error", "No solution exists.")
+    #Back
+    def back_to_initial(self):
+        """Close current window and return to the initial window."""
+        self.master.destroy()
+        main()  # Reopen the initial window
 
 
 def open_solver(generate_random=False):
@@ -182,8 +191,8 @@ def main():
                               font=('Arial', 14), bg="lightgreen", command=lambda: (initial_window.destroy(), open_solver(generate_random=True)))
     random_button.pack(pady=10)
 
-    initial_window.mainloop()
 
+    initial_window.mainloop()
 
 if __name__ == "__main__":
     main()
